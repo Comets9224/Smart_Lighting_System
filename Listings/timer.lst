@@ -1,0 +1,85 @@
+C51 COMPILER V9.59.0.0   TIMER                                                             10/26/2024 18:58:49 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN .\Objects\timer.obj
+COMPILER INVOKED BY: D:\CodeDesign\Keil5-C51\C51\BIN\C51.EXE timer.c COMPACT OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND
+                    - PRINT(.\Listings\timer.lst) TABS(2) OBJECT(.\Objects\timer.obj)
+
+line level    source
+
+   1          #include <STC12C5A60S2.h>
+   2          #include "timer.h"
+   3          
+   4          unsigned int hours = 18;
+   5          unsigned int minutes = 0;
+   6          unsigned int seconds = 0;
+   7          unsigned int on_hours = 18;
+   8          unsigned int on_minutes = 30;
+   9          unsigned int on_seconds = 0;
+  10          unsigned int off_hours = 23;
+  11          unsigned int off_minutes = 0;
+  12          unsigned int off_seconds = 0;
+  13          
+  14          void Timer0_Init(void)
+  15          {
+  16   1          TMOD &= 0xF0;  // 清除低4位（定时器0的配置位）
+  17   1          TMOD |= 0x01;  // 设置定时器0为模式1（16位定时器）
+  18   1          TH0 = 0xFC;    // 加载初值
+  19   1          TL0 = 0x66;
+  20   1          ET0 = 1;       // 使能定时器0中断
+  21   1          TR0 = 1;       // 启动定时器0
+  22   1      }
+  23          
+  24          void Timer0_ISR(void) interrupt 1
+  25          {
+  26   1          static unsigned int count = 0;
+  27   1      
+  28   1          TH0 = 0xFC;  // 重新加载定时器初值
+  29   1          TL0 = 0x66;
+  30   1      
+  31   1          count++;
+  32   1          if (count >= 1000) // 每1秒更新一次时间
+  33   1          {
+  34   2              count = 0;
+  35   2              seconds++;
+  36   2              if (seconds >= 60)
+  37   2              {
+  38   3                  seconds = 0;
+  39   3                  minutes++;
+  40   3                  if (minutes >= 60)
+  41   3                  {
+  42   4                      minutes = 0;
+  43   4                      hours++;
+  44   4                      if (hours >= 24)
+  45   4                      {
+  46   5                          hours = 0;
+  47   5                      }
+  48   4                  }
+  49   3              }
+  50   2          }
+  51   1      }
+  52          void StopTimer(void) {
+  53   1          ET0 = 0;  // 禁用定时器 0 中断
+  54   1          TR0 = 0;  // 停止定时器 0
+C51 COMPILER V9.59.0.0   TIMER                                                             10/26/2024 18:58:49 PAGE 2   
+
+  55   1      }
+  56          void StartTimer(void) {
+  57   1          TR0 = 1;  // 启动定时器 0
+  58   1          ET0 = 1;  // 启用定时器 0 中断
+  59   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    153    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     20    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

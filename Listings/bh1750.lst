@@ -1,0 +1,78 @@
+C51 COMPILER V9.59.0.0   BH1750                                                            10/26/2024 18:58:49 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE BH1750
+OBJECT MODULE PLACED IN .\Objects\bh1750.obj
+COMPILER INVOKED BY: D:\CodeDesign\Keil5-C51\C51\BIN\C51.EXE bh1750.c COMPACT OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEN
+                    -D PRINT(.\Listings\bh1750.lst) TABS(2) OBJECT(.\Objects\bh1750.obj)
+
+line level    source
+
+   1          #include "bh1750.h"
+   2          #include "i2c.h"
+   3          #include "lcd12864.h"
+   4          // 初始化BH1750
+   5          void BH1750_Init(unsigned char bus)
+   6          {
+   7   1          I2C_Init(bus);
+   8   1          
+   9   1          I2C_Start(bus);
+  10   1          I2C_SendByte(bus, BH1750_ADDR);
+  11   1          I2C_SendByte(bus, POWER_ON);
+  12   1          I2C_Stop(bus);
+  13   1          
+  14   1          I2C_Start(bus);
+  15   1          I2C_SendByte(bus, BH1750_ADDR);
+  16   1          I2C_SendByte(bus, CONT_H_RES_MODE);
+  17   1          I2C_Stop(bus);
+  18   1      
+  19   1      }
+  20          
+  21          // 读取光照强度
+  22          unsigned int BH1750_ReadLight(unsigned char bus)
+  23          {
+  24   1          unsigned int temp;
+  25   1          unsigned char msb, lsb;
+  26   1          
+  27   1          I2C_Start(bus);
+  28   1          I2C_SendByte(bus, BH1750_ADDR | 0x01);
+  29   1      
+  30   1          msb = I2C_RecvByte(bus);
+  31   1          I2C_SendAck(bus, 0);
+  32   1          
+  33   1          lsb = I2C_RecvByte(bus);
+  34   1          I2C_SendAck(bus, 1);
+  35   1          
+  36   1          I2C_Stop(bus);
+  37   1          
+  38   1          temp = (msb << 8) | lsb;
+  39   1          temp = (unsigned int)(((float)temp) / 1.2);
+  40   1          
+  41   1          return temp;
+  42   1      }
+  43          void BH1750_init()
+  44          {
+  45   1          // 初始化4个BH1750传感器
+  46   1          BH1750_Init(1);
+  47   1          BH1750_Init(2);
+  48   1          BH1750_Init(3);
+  49   1          BH1750_Init(4);
+  50   1          delay_ms(120);
+  51   1      
+  52   1      }
+
+
+C51 COMPILER V9.59.0.0   BH1750                                                            10/26/2024 18:58:49 PAGE 2   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    189    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----       4
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

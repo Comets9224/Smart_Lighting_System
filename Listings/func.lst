@@ -1,0 +1,151 @@
+C51 COMPILER V9.59.0.0   FUNC                                                              10/26/2024 18:58:49 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE FUNC
+OBJECT MODULE PLACED IN .\Objects\func.obj
+COMPILER INVOKED BY: D:\CodeDesign\Keil5-C51\C51\BIN\C51.EXE func.c COMPACT OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND 
+                    -PRINT(.\Listings\func.lst) TABS(2) OBJECT(.\Objects\func.obj)
+
+line level    source
+
+   1          #include "func.h"
+   2          #include "lcd12864.h"
+   3          #include "timer.h"
+   4          #include "stdio.h"
+   5          #include "key.h"
+   6          void LCD_Homepage(void)
+   7          {
+   8   1      // 显示初始信息
+   9   1          char timeString[16];
+  10   1          sprintf(timeString, "Time:%02u:%02u:%02u", hours, minutes, seconds);
+  11   1          LCD_DisplayString(0, 0, "Lux: ");
+  12   1          LCD_DisplayString(0, 1, timeString);  // 在第二行显示时间
+  13   1          LCD_DisplayString(0, 2, "Light: ");
+  14   1          LCD_DisplayString(0, 3, "BtReady");
+  15   1      }
+  16          void DisplayTime(unsigned int hours, unsigned int minutes, unsigned int seconds,unsigned int i)
+  17          {
+  18   1          char time[16];
+  19   1          sprintf(time, "Time:%02u:%02u:%02u", hours, minutes, seconds);
+  20   1          LCD_DisplayString(0, i, time);  
+  21   1      
+  22   1      }
+  23          
+  24          void Timemenu(void) {
+  25   1      
+  26   1          LCD_DisplayString(0, 0, "Time Adjust Menu");
+  27   1          LCD_DisplayString(0, 1, "key1:On Adjust");
+  28   1          LCD_DisplayString(0, 2, "key2:Off Adjust");
+  29   1          LCD_DisplayString(0, 3, "key3:Now Adjust");
+  30   1      }
+  31          void On_Adjust(void) {
+  32   1          LCD_Clear();
+  33   1          LCD_DisplayString(0, 0, "On Adjust");
+  34   1          DisplayTime(on_hours, on_minutes, on_seconds, 1);
+  35   1      
+  36   1          while (1) {
+  37   2              char key = Key_Scan();
+  38   2              if (key != '\0') {
+  39   3                  if (key == '1') {
+  40   4                      on_hours = (on_hours + 1) % 24; // 增加小时，并确保在 0-23 之间循环
+  41   4                      DisplayTime(on_hours, on_minutes, on_seconds, 1);
+  42   4                  } else if (key == '2') {
+  43   4                      on_minutes = (on_minutes + 1) % 60; // 增加分钟，并确保在 0-59 之间循环
+  44   4                      DisplayTime(on_hours, on_minutes, on_seconds, 1);
+  45   4                  } else if (key == '3') {
+  46   4                      on_seconds = (on_seconds + 1) % 60; // 增加秒，并确保在 0-59 之间循环
+  47   4                      DisplayTime(on_hours, on_minutes, on_seconds, 1);
+  48   4                  } else if (key == '0') {
+  49   4                      LCD_DisplayString(0, 2, "press 0 again");
+  50   4                      break; // 按下 '0' 键退出调整模式
+  51   4                  }
+  52   3              }
+  53   2          }
+  54   1      }
+C51 COMPILER V9.59.0.0   FUNC                                                              10/26/2024 18:58:49 PAGE 2   
+
+  55          
+  56          
+  57          void Off_Adjust(void) {
+  58   1          LCD_Clear();
+  59   1          LCD_DisplayString(0, 0, "Off Adjust");
+  60   1          DisplayTime(off_hours, off_minutes, off_seconds, 1);
+  61   1      
+  62   1          while (1) {
+  63   2              char key = Key_Scan();
+  64   2              if (key != '\0') {
+  65   3                  if (key == '1') {
+  66   4                      off_hours = (off_hours + 1) % 24; // 增加小时，并确保在 0-23 之间循环
+  67   4                      DisplayTime(off_hours, off_minutes, off_seconds, 1);
+  68   4                  } else if (key == '2') {
+  69   4                      off_minutes = (off_minutes + 1) % 60; // 增加分钟，并确保在 0-59 之间循环
+  70   4                      DisplayTime(off_hours, off_minutes, off_seconds, 1);
+  71   4                  } else if (key == '3') {
+  72   4                      off_seconds = (off_seconds + 1) % 60; // 增加秒，并确保在 0-59 之间循环
+  73   4                      DisplayTime(off_hours, off_minutes, off_seconds, 1);
+  74   4                  } else if (key == '0') {
+  75   4                      LCD_DisplayString(0, 2, "press 0 again");
+  76   4                      break; // 按下 '0' 键退出调整模式
+  77   4                  }
+  78   3              }
+  79   2          }
+  80   1      }
+  81          
+  82          void Now_Adjust(void) {
+  83   1          StopTimer();  // 停止定时器中断
+  84   1          LCD_Clear();
+  85   1          LCD_DisplayString(0, 0, "Now Adjust");
+  86   1          DisplayTime(hours, minutes, seconds,1);
+  87   1      
+  88   1          while (1) {
+  89   2              char key = Key_Scan();
+  90   2              if (key != '\0') {
+  91   3                  if (key == '1') {
+  92   4                      hours = (hours + 1) % 24; // 增加小时，并确保在 0-23 之间循环
+  93   4                      DisplayTime(hours, minutes, seconds,1);
+  94   4                  } else if (key == '2') {
+  95   4                      minutes = (minutes + 1) % 60; // 增加分钟，并确保在 0-59 之间循环
+  96   4                      DisplayTime(hours, minutes, seconds,1);
+  97   4                  } else if (key == '3') {
+  98   4                      seconds = (seconds + 1) % 60; // 增加秒，并确保在 0-59 之间循环
+  99   4                      DisplayTime(hours, minutes, seconds,1);
+ 100   4                  } else if (key == '0') {
+ 101   4                    LCD_DisplayString(0, 2, "press 0 again");  
+ 102   4                    break; // 按下 '0' 键退出调整模式
+ 103   4                  }
+ 104   3              }
+ 105   2          }
+ 106   1      
+ 107   1          StartTimer();  // 重新启动定时器中断
+ 108   1      }
+ 109          int isWithinOperatingTime(unsigned int hours, unsigned int minutes, unsigned int seconds,
+ 110                                    unsigned int on_hours, unsigned int on_minutes, unsigned int on_seconds,
+ 111                                    unsigned int off_hours, unsigned int off_minutes, unsigned int off_seconds) {
+ 112   1          // 将时间转换为秒数以便比较
+ 113   1          unsigned long now_time = hours * 3600 + minutes * 60 + seconds;
+ 114   1          unsigned long on_time = on_hours * 3600 + on_minutes * 60 + on_seconds;
+ 115   1          unsigned long off_time = off_hours * 3600 + off_minutes * 60 + off_seconds;
+ 116   1      
+C51 COMPILER V9.59.0.0   FUNC                                                              10/26/2024 18:58:49 PAGE 3   
+
+ 117   1          // 检查当前时间是否在开机和关机时间之间
+ 118   1          if (now_time >= on_time && now_time <= off_time) {
+ 119   2              return 1; // 在时间范围内
+ 120   2          } else {
+ 121   2              return 0; // 不在时间范围内
+ 122   2          }
+ 123   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1067    ----
+   CONSTANT SIZE    =    152    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----      73
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

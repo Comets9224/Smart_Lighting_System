@@ -1,0 +1,12 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\uart.obj",
+".\Objects\lcd12864.obj",
+".\Objects\timer.obj",
+".\Objects\key.obj",
+".\Objects\func.obj",
+".\Objects\bh1750.obj",
+".\Objects\i2c.obj",
+".\Objects\pwm.obj" 
+TO ".\Objects\智能照明节能系统" 
+PRINT(".\Listings\智能照明节能系统.m51") RAMSIZE(256) 

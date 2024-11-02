@@ -1,0 +1,71 @@
+C51 COMPILER V9.59.0.0   KEY                                                               10/26/2024 18:58:49 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN .\Objects\key.obj
+COMPILER INVOKED BY: D:\CodeDesign\Keil5-C51\C51\BIN\C51.EXE key.c COMPACT OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND P
+                    -RINT(.\Listings\key.lst) TABS(2) OBJECT(.\Objects\key.obj)
+
+line level    source
+
+   1          #include "lcd12864.h"
+   2          #include "key.h"
+   3          #define DEBOUNCE_DELAY 20
+   4          
+   5          void Key_Init(void) {
+   6   1          P0 = 0xFF; // Set P0 as input
+   7   1      }
+   8          char Key_Scan(void) {
+   9   1          if (!KEY0) { // Check if KEY0 is pressed
+  10   2              delay_ms(DEBOUNCE_DELAY); // Debounce delay
+  11   2              if (!KEY0) {
+  12   3                  while (!KEY0); // Wait for key release
+  13   3                  return '0';
+  14   3              }
+  15   2          }
+  16   1          if (!KEY1) { // Check if KEY1 is pressed
+  17   2              delay_ms(DEBOUNCE_DELAY);
+  18   2              if (!KEY1) {
+  19   3                  while (!KEY1);
+  20   3                  return '1';
+  21   3              }
+  22   2          }
+  23   1          if (!KEY2) { // Check if KEY2 is pressed
+  24   2              delay_ms(DEBOUNCE_DELAY);
+  25   2              if (!KEY2) {
+  26   3                  while (!KEY2);
+  27   3                  return '2';
+  28   3              }
+  29   2          }
+  30   1          if (!KEY3) { // Check if KEY3 is pressed
+  31   2              delay_ms(DEBOUNCE_DELAY);
+  32   2              if (!KEY3) {
+  33   3                  while (!KEY3);
+  34   3                  return '3';
+  35   3              }
+  36   2          }
+  37   1            if (!KEY4) { // Check if KEY3 is pressed
+  38   2              delay_ms(DEBOUNCE_DELAY);
+  39   2              if (!KEY4) {
+  40   3                  while (!KEY4);
+  41   3                  return '4';
+  42   3              }
+  43   2          }
+  44   1          return '\0'; // No key pressed
+  45   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    102    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.59.0.0   KEY                                                               10/26/2024 18:58:49 PAGE 2   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

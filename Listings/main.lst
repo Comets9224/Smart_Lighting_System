@@ -1,0 +1,275 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              11/02/2024 22:37:47 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\CodeDesign\Keil5-C51\C51\BIN\C51.EXE main.c COMPACT OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND 
+                    -PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC12C5A60S2.h>
+   2          #include "lcd12864.h"
+   3          #include "uart.h"
+   4          #include "timer.h"
+   5          #include "stdio.h"
+   6          #include "key.h"
+   7          #include "main.h"
+   8          #include "func.h"
+   9          #include "bh1750.h"
+  10          #include "pwm.h"
+  11          
+  12          bit HP_flag = 1;
+  13          bit MU_flag = 0;
+  14          bit Third_flag = 0;
+  15          bit LUX_flag = 0;
+  16          data unsigned int lux[4];
+  17          bit LED_flag = 0;
+  18          bit Time_flag=0;
+  19          bit is_duty_initialized = 0; 
+  20          bit adjustment_needed = 0; //表示是否需要调整
+  21          data unsigned int base_lux=0;
+  22          data unsigned int percent = 0;
+  23          data unsigned int avg_lux;
+  24          void main(void)
+  25          {   
+  26   1          data char lux_str[20];
+  27   1          data float total_lux;
+  28   1          
+  29   1          unsigned int duty;
+  30   1      
+  31   1          LCD_BL = 0;  // 打开背光（低电平有效）
+  32   1          Key_Init();
+  33   1          Timer0_Init();
+  34   1          LCD_Init();
+  35   1          UART_Init();
+  36   1          BH1750_init(); // 初始化四个1750
+  37   1          PWM_Init();  // 初始化PWM
+  38   1      
+  39   1          EA = 1;
+  40   1          LCD_Homepage();
+  41   1          
+  42   1          UART_SendString("Bluetooth already linked\r\n");
+  43   1              
+  44   1          while (1)
+  45   1          {   
+  46   2              char key;
+  47   2              
+  48   2              // 读取4个BH1750传感器的数据
+  49   2              lux[0] = BH1750_ReadLight(1);
+  50   2              lux[1] = BH1750_ReadLight(2);
+  51   2              lux[2] = BH1750_ReadLight(3);
+  52   2              lux[3] = BH1750_ReadLight(4);
+  53   2              delay_ms(120);//读取需要时间
+  54   2      
+C51 COMPILER V9.59.0.0   MAIN                                                              11/02/2024 22:37:47 PAGE 2   
+
+  55   2              if (isWithinOperatingTime(hours, minutes, seconds, on_hours, on_minutes, on_seconds, off_hours, of
+             -f_minutes, off_seconds)) 
+  56   2                {
+  57   3                  Time_flag = 1;
+  58   3                }
+  59   2                else {
+  60   3                  if(blue_timeflag==1)
+  61   3                  { Time_flag = 1;}
+  62   3                  else
+  63   3                  {Time_flag = 0;}
+  64   3                    }
+  65   2              
+  66   2              if (HP_flag == 1)
+  67   2              {    
+  68   3                  int i = 0;  
+  69   3                  bit error_flag = 0;
+  70   3                  DisplayTime(hours, minutes, seconds, 1);
+  71   3                          
+  72   3                  // 检查是否有错误
+  73   3                  for (i = 0; i < 4; i++) {
+  74   4                      if (lux[i] == -10924) {
+  75   5                          sprintf(lux_str, "ERROR: Lux[%d]", i + 1);
+  76   5                          LCD_DisplayString(0, 0, lux_str);
+  77   5                          error_flag = 1;
+  78   5                          break;
+  79   5                      }
+  80   4                  }
+  81   3      
+  82   3                  if (!error_flag) {
+  83   4                      // 计算平均照度
+  84   4                      total_lux = (float)(lux[0] + lux[1] + lux[2] + lux[3]);
+  85   4                      avg_lux = (unsigned int)(total_lux / 4);
+  86   4      
+  87   4                      // 显示平均照度
+  88   4                      sprintf(lux_str, "lux: %4d", avg_lux);
+  89   4                      
+  90   4                      LCD_DisplayString(0, 0, lux_str);
+  91   4      
+  92   4                      // 设置lux_flag为1
+  93   4                      LUX_flag = 1;
+  94   4                  }
+  95   3                  
+  96   3                sprintf(lux_str, "Light: %2d per", percent);
+  97   3                LCD_DisplayString(0, 2, lux_str);
+  98   3              } 
+  99   2      
+ 100   2              if ((BT_flag == 1) && (HP_flag == 1))//蓝牙准备好了的返回信息
+ 101   2                {
+ 102   3                  delay_ms(15000);
+ 103   3                  LCD_DisplayString(0, 3, "BtReady");
+ 104   3                  BT_flag = 0;
+ 105   3              }
+ 106   2              
+ 107   2              key = Key_Scan();
+ 108   2              if (key != '\0') 
+ 109   2              {
+ 110   3                  // 处理按键
+ 111   3                  if (key == '0') 
+ 112   3                  {
+ 113   4                      if (Third_flag == 0)
+ 114   4                      {
+ 115   5                          MU_flag = ~MU_flag;
+C51 COMPILER V9.59.0.0   MAIN                                                              11/02/2024 22:37:47 PAGE 3   
+
+ 116   5                          if (MU_flag)
+ 117   5                          {
+ 118   6                              HP_flag = 0; 
+ 119   6                              Timemenu();
+ 120   6                          }
+ 121   5                          else
+ 122   5                          {
+ 123   6                              HP_flag = 1; 
+ 124   6                              LCD_Homepage();
+ 125   6                          }
+ 126   5                      }
+ 127   4                      if (Third_flag == 1)
+ 128   4                      {
+ 129   5                          Third_flag = 0;
+ 130   5                          LCD_Clear();
+ 131   5                          Timemenu();
+ 132   5                          MU_flag = 1;
+ 133   5                      }
+ 134   4                  }
+ 135   3      
+ 136   3                  if ((key == '1') && (MU_flag == 1) && (Third_flag == 0))
+ 137   3                  {
+ 138   4                      On_Adjust();
+ 139   4                      Third_flag = 1;
+ 140   4                  }
+ 141   3      
+ 142   3                  if ((key == '2') && (MU_flag == 1) && (Third_flag == 0))
+ 143   3                  {
+ 144   4                      Off_Adjust();
+ 145   4                      Third_flag = 1;
+ 146   4                  }
+ 147   3      
+ 148   3                  if ((key == '3') && (MU_flag == 1) && (Third_flag == 0))
+ 149   3                  {
+ 150   4                      Now_Adjust();
+ 151   4                      Third_flag = 1;
+ 152   4                  }
+ 153   3                              
+ 154   3                  if ((key == '4'))
+ 155   3                  {
+ 156   4                      LED_flag = ~LED_flag;
+ 157   4                   
+ 158   4                  }
+ 159   3              }
+ 160   2      if ((LED_flag == 1) && (Time_flag == 1))
+ 161   2          {
+ 162   3              if (!is_duty_initialized) {
+ 163   4                  duty = 125; // 从50%亮度开始
+ 164   4                  PWM_SetDuty(duty);
+ 165   4                  delay_ms(5000); // 等待5秒让环境光稳定
+ 166   4      
+ 167   4                  // 读取照度值
+ 168   4                  lux[0] = BH1750_ReadLight(1);
+ 169   4                  lux[1] = BH1750_ReadLight(2);
+ 170   4                  lux[2] = BH1750_ReadLight(3);
+ 171   4                  lux[3] = BH1750_ReadLight(4);
+ 172   4                  total_lux = lux[0] + lux[1] + lux[2] + lux[3];
+ 173   4                  avg_lux = total_lux / 4;
+ 174   4      
+ 175   4                  base_lux = avg_lux; // 设置基准值
+ 176   4                  is_duty_initialized = 1; // 标记已初始化
+ 177   4              }
+C51 COMPILER V9.59.0.0   MAIN                                                              11/02/2024 22:37:47 PAGE 4   
+
+ 178   3      
+ 179   3              if (LUX_flag == 1 && is_duty_initialized == 1)
+ 180   3              {
+ 181   4                  // 检查是否需要调整
+ 182   4                  if (avg_lux < base_lux * 92 / 100 || avg_lux > base_lux * 108 / 100) {
+ 183   5                      adjustment_needed = 1;
+ 184   5                  }
+ 185   4      
+ 186   4                  if (adjustment_needed) {
+ 187   5                      int target_low = base_lux * 97 / 100;
+ 188   5                      int target_high = base_lux * 103 / 100;
+ 189   5                      int adjustment = 0;
+ 190   5      
+ 191   5                      if (avg_lux < target_low) {
+ 192   6                          adjustment = (target_low - avg_lux) / 10;
+ 193   6                          adjustment = (adjustment > 10) ? 10 : (adjustment < 1) ? 1 : adjustment;
+ 194   6                          if (duty + adjustment <= 255) {
+ 195   7                              duty += adjustment;
+ 196   7                          } else {
+ 197   7                              duty = 255; // 最大限制
+ 198   7                          }
+ 199   6                      } else if (avg_lux > target_high) {
+ 200   6                          adjustment = (avg_lux - target_high) / 10;
+ 201   6                          adjustment = (adjustment > 10) ? 10 : (adjustment < 1) ? 1 : adjustment;
+ 202   6                          if (duty >= adjustment) {
+ 203   7                              duty -= adjustment;
+ 204   7                          } else {
+ 205   7                              duty = 0; // 最小限制
+ 206   7                          }
+ 207   6                      } else {
+ 208   6                          // 在目标范围内，停止调整
+ 209   6                          adjustment_needed = 0;
+ 210   6                      }
+ 211   5                      PWM_SetDuty(duty);
+ 212   5                  }
+ 213   4              }
+ 214   3              
+ 215   3              percent = (duty * 100) / 255;
+ 216   3          }
+ 217   2      
+ 218   2          if ((LED_flag == 1) && (Time_flag == 0))
+ 219   2          {
+ 220   3              duty = 125; // 设置为50%亮度
+ 221   3              PWM_SetDuty(duty);
+ 222   3              percent = (duty * 100) / 255;
+ 223   3              delay_ms(5000);
+ 224   3              LED_flag = 0;
+ 225   3              is_duty_initialized = 0; // 重置标志位
+ 226   3              adjustment_needed = 0; // 重置调整标志
+ 227   3              base_lux = 0; // 清除基准值
+ 228   3          }
+ 229   2      
+ 230   2          if (LED_flag == 0)
+ 231   2          {   
+ 232   3              duty = 0;
+ 233   3              PWM_SetDuty(duty);
+ 234   3              base_lux = 0; // 清除基准值
+ 235   3              percent = 0;
+ 236   3              is_duty_initialized = 0; // 重置标志位
+ 237   3              adjustment_needed = 0; // 重置调整标志
+ 238   3          }
+ 239   2      
+C51 COMPILER V9.59.0.0   MAIN                                                              11/02/2024 22:37:47 PAGE 5   
+
+ 240   2              delay_ms(1000);  // 防止屏幕刷新太快闪烁
+ 241   2          }
+ 242   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1306    ----
+   CONSTANT SIZE    =     74    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----       9
+   DATA SIZE        =     14      24
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      8       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
